@@ -16,21 +16,32 @@ def get_parser():
 
 
 def source_is_reliable(filename: str or Path) -> bool:
+    nodes_accepted_before_try = (
+        ast.Assign,
+        ast.ClassDef,
+        ast.FunctionDef,
+        ast.Import,
+        ast.ImportFrom,
+    )
     with open(filename, 'r', encoding='utf-8') as f:
         source = f.read()
     try:
         tree = ast.parse(source, filename)
-    except SyntaxError:
-        return False
+    except SyntaxError as err:
+        return False, "Error sintáctico en el código fuente: {err}"
     nodes = list(tree.body)
     if not nodes:
-        return False
-    all_first_statements_are_imports = all(
-        isinstance(n, (ast.Import, ast.ImportFrom, ast.FunctionDef))
+        return False, "No hay código, árbol AST vacío"
+    all_first_statements_are_valid = all(
+        isinstance(n, nodes_accepted_before_try)
         for n in nodes[0:-1]
         )
+    if not all_first_statements_are_valid:
+        return False, "No todas las sentencias anteriores al try son válidas"
     last_statement_is_try = isinstance(nodes[-1], ast.Try)
-    return all_first_statements_are_imports and last_statement_is_try
+    if not last_statement_is_try:
+        return False, "La últioma sentencia no es un try"
+    return True, ''
 
 
 def main():
@@ -41,14 +52,16 @@ def main():
         filename = Path(arg_filename)
         if not filename.exists():
             continue
-        is_ready = source_is_reliable(filename)
-        if args.files:
-            if is_ready:
+        is_ready, error_message = source_is_reliable(filename)
+        if is_ready:
+            if args.files:
                 print(prefix, filename, end="")
                 prefix = "\n"
+            else:
+                print('filename', filename, OK)
         else:
-            print('filename', filename, end=" ")
-            print (OK if is_ready else ERROR)
+            print('filename', filename, ERROR, error_message)
+
 
 
 if __name__ == "__main__":
