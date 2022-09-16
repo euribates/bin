@@ -28,7 +28,7 @@ def source_is_reliable(filename: str or Path) -> bool:
     try:
         tree = ast.parse(source, filename)
     except SyntaxError as err:
-        return False, "Error sintáctico en el código fuente: {err}"
+        return False, f"Error sintáctico en el código fuente: {err}"
     nodes = list(tree.body)
     if not nodes:
         return False, "No hay código, árbol AST vacío"

@@ -17,7 +17,7 @@ ERROR = "\u001b[31m[Nope]\u001b[0m"
 def get_parser():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('filenames', type=str, nargs='+', help='Files to fix')
-    parser.add_argument('--force', action='store_true')
+    parser.add_argument('--fix', action='store_true')
     parser.add_argument('--check', action='store_true')
     return parser
 
@@ -92,7 +92,7 @@ def main():
             continue
         if workable:
             imports, body = split_code(lines, arg_filename)
-            if args.force:
+            if args.fix:
                 backup_filename = filename.with_suffix(f".old")
                 if not backup_filename.exists():
                     filename.rename(backup_filename)
