@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import functools
-import logging
 import configparser
-import io
-from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import functools
+import http
+import http.server
+import logging
 
 DEFAULT_SERVER_HOST = 'localhost'
 
-DEFAULT_SERVER_PORT = 4800
+DEFAULT_SERVER_PORT = 8400
 
 DEFAULT_LOG_NAME = 'kandor'
 
@@ -45,7 +44,7 @@ def load_config():
     }
 
 
-class RequestHandler(BaseHTTPRequestHandler):
+class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):  # NoQA
         logger = load_config().get('logger')
@@ -55,7 +54,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             )
         logger.debug(message)
         body = message.encode('utf-8')
-        self.send_response(HTTPStatus.OK)
+        self.send_response(http.HTTPStatus.OK)
         self.send_header("Content-type", "text/plain; charset=utf-8")
         self.send_header("Content-Length", len(body))
         self.end_headers()
@@ -73,7 +72,7 @@ def main():
     address = config['address']
     logger.info('Kandor API simulator starts')
     logger.info('waiting connections at %s:%s', *address)
-    httpd = HTTPServer(address, RequestHandler)
+    httpd = http.server.HTTPServer(address, RequestHandler)
     httpd.serve_forever()
 
 
